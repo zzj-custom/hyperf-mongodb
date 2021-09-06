@@ -425,15 +425,24 @@ class MongoDbConnection extends Connection implements ConnectionInterface
         }
     }
 
-    public function commandHandle(string $namespace, array $cmd)
+    /**
+     * @param string $namespace
+     * @param array $cmd
+     * @return \MongoDB\Driver\Cursor
+     * @throws Exception
+     * @throws MongoDBException
+     */
+    public function commandHandle(string $namespace, array $cmd = [])
     {
         try {
             $command = new Command($cmd);
-            return $this->connection->executeCommand($this->config['db'], $command);
+            $cursor =  $this->connection->executeCommand($this->config['db'], $command);
         } catch (\Exception $e) {
+            $cursor = false;
             throw new MongoDBException($e->getFile() . $e->getLine() . $e->getMessage());
         } finally {
             $this->pool->release($this);
+            return $cursor;
         }
     }
 
